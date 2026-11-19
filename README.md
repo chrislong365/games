@@ -20,7 +20,13 @@ This repo is public, but it only holds **built** games. Each game's source stays
 
 1. Pick a lowercase folder name, e.g. `space-race`. Pages URLs are case-sensitive, so keep them lowercase with dashes.
 2. In the game's repo, use the deploy workflow from `the-human-factor` (`.github/workflows/deploy.yml`) and set its `GAME_PATH` to the folder name.
-3. Give the game's repo the publishing key: `gh secret set GAMES_DEPLOY_KEY -R chrislong365/<game-repo> < key` (the private half of this repo's write deploy key; if it's not to hand, make a new key, add it under **Settings → Deploy keys** here with write access, and set the secret).
+3. Give the game's repo its own publishing key (one per game, so each can be revoked alone):
+   ```sh
+   ssh-keygen -q -t ed25519 -N "" -C "<game-repo> -> games deploy" -f /tmp/k
+   gh repo deploy-key add /tmp/k.pub -R chrislong365/games --allow-write -t "deploy from <game-repo> (Actions)"
+   gh secret set GAMES_DEPLOY_KEY -R chrislong365/<game-repo> < /tmp/k
+   rm /tmp/k /tmp/k.pub
+   ```
 4. Add a picture to `thumbs/` and an entry to `games.json`.
 
 The game's build must use relative asset paths (Vite: `base: "./"`), since it is served from a sub-folder.
